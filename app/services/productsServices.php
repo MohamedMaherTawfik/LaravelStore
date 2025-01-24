@@ -5,16 +5,23 @@ namespace App\Services;
 use App\Http\Controllers\api\apiResponse;
 use App\Http\Requests\productRequest;
 use App\Models\products;
+use App\Repository\productsRepository;
 
 class productsServices
 {
 
     use apiResponse;
 
+    private $productsRepository;
+
+    public function __construct(productsRepository $productsRepository)
+    {
+        $this->productsRepository = $productsRepository;
+    }
     public function index()
     {
 
-        $products = products::paginate(10);
+        $products = $this->productsRepository->all();
         if($products)
         {
             return $this->apiResponse($products, 'Products Found Successfully', 200);
@@ -26,7 +33,7 @@ class productsServices
 
     public function show()
     {
-        $product = products::find(request('id'));
+        $product = $this->productsRepository->find();
         if($product)
         {
             return $this->apiResponse($product, 'Product Found Successfully', 200);
@@ -45,14 +52,18 @@ class productsServices
             $image->move(public_path('uploads'), $image->getClientOriginalName());
             $fields['image'] = $image->getClientOriginalName();
         }
-        $product=products::create($fields);
+        $product= $this->productsRepository->create($fields);
         return $this->apiResponse($product, 'Product Created Successfully', 201);
     }
 
     public function update(productRequest $request)
     {
         $fields=$request->validated();
-        $product=products::find(request('id'));
+        $product=$this->productsRepository->find();
+        if(!$product)
+        {
+            return $this->apiResponse(null, 'Product Not Found', 404);
+        }
 
         if($request->hasFile('image'))
         {
@@ -62,7 +73,7 @@ class productsServices
         }
         if($product)
         {
-            $product->update($fields);
+            $this->productsRepository->update($fields);
             return $this->apiResponse($product, 'Product Updated Successfully', 200);
         }
         else{
@@ -72,7 +83,7 @@ class productsServices
 
     public function destroy()
     {
-        $product=products::find(request('id'));
+        $product=$this->productsRepository->find();
         if($product)
         {
             $product->delete();

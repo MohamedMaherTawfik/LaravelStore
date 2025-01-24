@@ -5,27 +5,33 @@ namespace App\Services;
 use App\Http\Controllers\api\apiResponse;
 use App\Http\Requests\brandRequest;
 use App\Models\brands;
+use App\Repository\BrandRepository;
 
 
 class brandServices
 {
     use apiResponse;
+    private $brandRepository;
+    public function __construct(BrandRepository $brandRepository)
+    {
+        $this->brandRepository = $brandRepository;
+    }
     public function index()
     {
-        $brand = brands::paginate(5);
+        $brand = $this->brandRepository->all();
         return $this->apiResponse($brand, 'All Brands', 200);
     }
 
     public function store(brandRequest $request)
     {
         $fields=$request->validated();
-        $brand=brands::create($fields);
+        $brand=$this->brandRepository->create($fields);
         return $this->apiResponse($brand, 'Brand Created Successfully', 201);
     }
 
     public function show()
     {
-        $brand = brands::find(request('id'));
+        $brand = $this->brandRepository->find();
         if($brand)
         {
             return $this->apiResponse($brand, 'Brand Found Successfully', 200);
@@ -38,7 +44,7 @@ class brandServices
     public function update(brandRequest $request)
     {
         $fields=$request->validated();
-        $brand=brands::find(request('id'));
+        $brand=$this->brandRepository->find();
 
         if($brand)
         {
@@ -52,10 +58,10 @@ class brandServices
 
     public function destroy()
     {
-        $brand=brands::find(request('id'));
-        $brand->delete();
+        $brand=$this->brandRepository->find();
         if($brand)
         {
+            $this->brandRepository->delete();
             return $this->apiResponse(null, 'Brand Deleted Successfully', 200);
         }
         else{
@@ -65,13 +71,13 @@ class brandServices
 
     public function products()
     {
-        $products = brands::with('products')->find(request('id'));
+        $products = $this->brandRepository->products();
         if($products)
         {
-            return $this->apiResponse($products, 'Brand Found Successfully', 200);
+            return $this->apiResponse($products, 'Products Found Successfully', 200);
         }
         else{
-            return $this->apiResponse(null, 'Brand Not Found', 404);
+            return $this->apiResponse(null, 'Products Not Found', 404);
         }
     }
 }

@@ -6,13 +6,19 @@ use App\Http\Controllers\api\apiResponse;
 use App\Http\Requests\categoreyRequest;
 use App\Http\Resources\categoreyResource;
 use App\Models\categories;
+use App\Repository\categoreyRepository;
 
 class categoreyServices
 {
     use apiResponse;
+    private $categoreyRepository;
+    public function __construct(categoreyRepository $categoreyRepository)
+    {
+        $this->categoreyRepository = $categoreyRepository;
+    }
     public function index()
     {
-        $categories =categories::paginate(5);
+        $categories = $this->categoreyRepository->all();
         return $this->apiResponse($categories, 'All Categoreys', 200);
     }
 
@@ -27,13 +33,13 @@ class categoreyServices
             $fields['image'] = $filename;
         }
 
-        $categorey=categories::create($fields);
+        $categorey=$this->categoreyRepository->create($fields);
         return $this->apiResponse($categorey, 'Categorey Created Successfully', 201);
     }
 
     public function show()
     {
-        $categories= categories::find(request('id'));
+        $categories= $this->categoreyRepository->find();
         if($categories)
         {
             return $this->apiResponse(new categoreyResource($categories), 'Categorey Found Successfully', 200);
@@ -54,11 +60,10 @@ class categoreyServices
             $fields['image'] = $filename;
         }
 
-        $categorey=categories::find(request('id'));
+        $categorey=$this->categoreyRepository->create($fields);
 
         if($categorey)
         {
-            $categorey->update($fields);
             return $this->apiResponse($categorey, 'Categorey Updated Successfully', 200);
         }
         else{
@@ -68,7 +73,7 @@ class categoreyServices
 
     public function destroy()
     {
-        $categories=categories::find(request('id'))->delete();
+        $categories=$this->categoreyRepository->find();
         if($categories)
         {
             return $this->apiResponse(null, 'Categorey Deleted Successfully', 200);
@@ -80,7 +85,7 @@ class categoreyServices
 
     public function products()
     {
-        $products = categories::with('products')->find(request('id'));
+        $products = $this->categoreyRepository->products();
         if($products)
         {
             return $this->apiResponse($products, 'categorey Found Successfully', 200);

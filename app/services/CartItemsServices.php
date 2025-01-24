@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Cart;
 use App\Models\CartItems;
+use App\Repository\cartRepository;
 session_start();
 
 use App\Http\Controllers\api\apiResponse;
@@ -12,13 +13,16 @@ use App\Models\products;
 class CartItemsServices
 {
     use apiResponse;
+    private $cart;
+
+    public function __construct(cartRepository $cart)
+    {
+        $this->cart = $cart;
+    }
 
     public function get_cart_items()
     {
-        // i want to fetch evey cart with ir products name and price and the pivot table is cartitems
-
-        $cart = Cart::with('products')->where('user_id', auth()->user()->id)->get();
-        return $this->apiResponse($cart, 'Cart Fetched Successfully', 200);
+        return $this->cart->get_cart_items();
     }
 
     public function add_to_cart()
@@ -75,7 +79,7 @@ class CartItemsServices
     public function remove_from_cart()
     {
         // remove sigle product from cart
-        $cart = Cart::where('user_id', auth()->user()->id)->first();
+        $cart = $this->cart->find_user_cart();
         $cartitems = CartItems::where('cart_id', $cart->id)->where('products_id', request('product_id'))->first();
         if(!$cartitems)
         {

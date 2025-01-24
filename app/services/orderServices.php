@@ -5,20 +5,27 @@ namespace App\Services;
 use App\Http\Controllers\api\apiResponse;
 use App\Http\Requests\orderRequest;
 use App\Models\Cart;
-use App\Models\CartItems;
 use App\Models\order_items;
 use App\Models\orders;
 use App\Models\products;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use App\Repository\orderRepository;
 
 class orderServices
 {
     use apiResponse;
+
+    private $ordersRepository;
+
+    public function __construct(orderRepository $ordersRepository)
+    {
+        $this->ordersRepository = $ordersRepository;
+    }
     public function index()
     {
-        $orders = orders::all();
+        $orders = $this->ordersRepository->all();
         if($orders)
         {
         return $this->apiResponse($orders, 'orders Found Successfully', 200);
@@ -31,7 +38,7 @@ class orderServices
 
     public function show()
     {
-        $order = orders::with('order_items')->find(request('id'));
+        $order = $this->ordersRepository->find();
         if($order)
         {
             return $this->apiResponse($order, 'order Found Successfully', 200);
@@ -67,9 +74,6 @@ class orderServices
         }
         $order->load('order_items');
         return $this->apiResponse($order, 'order Created Successfully', 200);
-
-        // $order->load('order_items');
-        // return $this->apiResponse($order, 'order Created Successfully', 200);
         } catch (Exception $e) {
             return $this->apiResponse(null, $e->getMessage(), 500);
         }
@@ -111,7 +115,7 @@ class orderServices
 
     public function change_status()
     {
-        $order = orders::find(request('id'));
+        $order = $this->ordersRepository->find();
         if($order)
         {
             $order->update([
@@ -126,9 +130,9 @@ class orderServices
 
     public function get_user_orders()
     {
-        $user=User::with('orders', 'orders.order_items')->find(request('id'));
+        $user=$this->ordersRepository->get_user_orders();
         if($user){
-        return $this->apiResponse($user, 'user orders Found Successfully', 200);
+            return $this->apiResponse($user, 'user orders Found Successfully', 200);
         }
         else{
             return $this->apiResponse(null, 'user orders Not Found', 404);

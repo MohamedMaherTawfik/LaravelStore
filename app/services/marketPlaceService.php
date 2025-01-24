@@ -6,19 +6,25 @@ use App\Http\Controllers\api\apiResponse;
 use App\Http\Requests\marketPlaceRequest;
 use App\Http\Resources\marketPlaceResource;
 use App\Models\marketPlace;
+use App\Repository\marketPlaceRepository;
 
 class marketPlaceService
 {
     use apiResponse;
+    private $marketPlaceRepository;
+    public function __construct(marketPlaceRepository $marketPlaceRepository)
+    {
+        $this->marketPlaceRepository = $marketPlaceRepository;
+    }
     public function index()
     {
-        $marketPlace = marketPlace::paginate(5);
+        $marketPlace = $this->marketPlaceRepository->all();
         return $this->apiResponse($marketPlace, 'All marketPlaces', 200);
     }
 
     public function show()
     {
-        $marketPlace = marketPlace::find(request('id'));
+        $marketPlace = $this->marketPlaceRepository->find();
         if($marketPlace)
         {
             return $this->apiResponse(new marketPlaceResource($marketPlace), 'marketPlace Found Successfully', 200);
@@ -30,19 +36,19 @@ class marketPlaceService
 
     public function store(marketPlaceRequest $request)
     {
-        $request->validated();
-        $marketPlace = marketPlace::create(request()->all());
+        $fileds=$request->validated();
+        $marketPlace = $this->marketPlaceRepository->create($fileds);
         return $this->apiResponse(new marketPlaceResource($marketPlace), 'marketPlace Created Successfully', 200);
     }
 
 
     public function update(marketPlaceRequest $request)
     {
-        $request->validated();
-        $marketPlace = marketPlace::find(request('id'));
+        $fileds=$request->validated();
+        $marketPlace = $this->marketPlaceRepository->find();
         if($marketPlace)
         {
-            $marketPlace->update(request()->all());
+            $marketPlace->update($fileds);
             return $this->apiResponse(new marketPlaceResource($marketPlace), 'marketPlace Updated Successfully', 200);
         }
         else{
@@ -52,7 +58,7 @@ class marketPlaceService
 
     public function destroy()
     {
-        $marketPlace = marketPlace::find(request('id'));
+        $marketPlace = $this->marketPlaceRepository->find();
         if($marketPlace)
         {
             $marketPlace->delete();
@@ -65,7 +71,7 @@ class marketPlaceService
 
     public function products()
     {
-        $products = marketPlace::with('products')->find(request('id'));
+        $products = $this->marketPlaceRepository->products();
         if($products)
         {
             return $this->apiResponse($products, 'Products Found Successfully', 200);
