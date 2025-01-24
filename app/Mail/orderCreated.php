@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Http\Controllers\api\apiResponse;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -13,12 +14,14 @@ class orderCreated extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $order;
+
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct($order)
     {
-        //
+        $this->order = $order;
     }
 
     /**
@@ -37,7 +40,10 @@ class orderCreated extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'view.name',
+            view: 'emails.orderCreated',
+            with: [
+                'order' => $this->order,
+            ],
         );
     }
 

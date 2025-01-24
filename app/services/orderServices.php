@@ -8,7 +8,6 @@ use App\Models\Cart;
 use App\Models\order_items;
 use App\Models\orders;
 use App\Models\products;
-use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use App\Repository\orderRepository;
